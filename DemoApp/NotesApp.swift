@@ -1,79 +1,98 @@
 //
 //  ContentView.swift
-//  DemoApp
+//  TODoAPP
 //
-//  Created by students on 08/12/25.
+//  Created by Yagnikk on 12/4/25.
 //
 
 import SwiftUI
 import SwiftData
 
 struct NotesApp: View {
-    @Environment(\.modelContext)
-    private var modelContext
     
-    @Query private var lists:
-    [listt]
+    // Used to perform CRUD operations
+    @Environment(\.modelContext) private var modelContext
     
-    @State private var title:String = ""
+    
+    @Query private var lists: [Listt]
+    
+    @State private var title: String = ""
     @State private var isAlertShowing: Bool = false
+    
     var body: some View {
         NavigationStack{
-            List{
+            List {
                 ForEach(lists) { list in
                     Text(list.title)
+                        .font(.title2)
+                        .fontWeight(.light)
+                        .padding(.vertical, 2)
+                        .swipeActions{
+                            Button("Delete", role: .destructive){
+                                modelContext.delete(list)
+                            }
+                        }
                 }
             }
-            .navigationTitle("Notes App")
-            
+            .navigationTitle("My Lists")
             .toolbar{
                 ToolbarItem(placement: .topBarTrailing){
                     Button{
+                        // Add button action here
                         isAlertShowing.toggle()
-                    }label: {
+                    } label:{
                         Image(systemName: "plus")
                             .imageScale(.large)
                     }
                 }
+                
             }
-            .alert("Creat a new list", isPresented: $isAlertShowing){
-                TextField("Enter a list", text: $title)
+            .alert("Create a new list", isPresented: $isAlertShowing){
+                TextField("Enter a list",text: $title )
                 
                 Button(){
-                    modelContext.insert(listt(title: title))
+                    modelContext.insert(Listt(title: title))
                     title = ""
                 }label: {
                     Text("Save")
                 }
+                .disabled(title.isEmpty)
             }
             .overlay{
-                if lists.isEmpty{
-                    ContentUnavailableView("My lists are not available",systemImage: "bin.xmark",
-                                           description:  Text("No lists yet. Add one to get started.")
+                if lists.isEmpty {
+                    ContentUnavailableView(
+                        "My lists are not available",
+                        systemImage: "plus.circle.fill",
+                        description: Text("No lists yet. Add one to get started.")
                     )
                 }
             }
         }
     }
 }
-#Preview("Demo Preview"){
+
+#Preview("Second List"){
     
-    let container = try! ModelContainer(
-        for: listt.self, configurations:
-            ModelConfiguration(isStoredInMemoryOnly: true)
+    do {
+        let container = try! ModelContainer(
+            for: Listt.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
+        
         let ctx = container.mainContext
-        ctx.insert(listt(title: "Swift Coding Club"))
-        ctx.insert(listt(title: "Good Moring"))
-        ctx.insert(listt(title: "Good Afternoon"))
-    
-     return NotesApp()
-        .modelContainer(container)
+        ctx.insert(Listt(title: "Swift Coding Club"))
+        ctx.insert(Listt(title: "Good Morning"))
+        ctx.insert(Listt(title: "Good Afternoon"))
+        
+        // Return the view for this preview
+        return NotesApp()
+            .modelContainer(container)
+    } catch {
+        fatalError("Failed to create a ModelContainer: \(error)")
+    }
 }
 
-
-#Preview ("Main Previem") {
-    
-    
+#Preview("Main List") {
     NotesApp()
+        .modelContainer(for: Listt.self, inMemory: true)
 }

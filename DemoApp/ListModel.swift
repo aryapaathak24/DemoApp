@@ -3,7 +3,7 @@ import SwiftData
 
 
 @Model
-class listt {
+class Listt {
     var title: String
     
     init(title: String){
